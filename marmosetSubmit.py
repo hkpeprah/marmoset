@@ -5,12 +5,13 @@
 
 import re, getpass, string, mechanize, cookielib, os, sys
 from BeautifulSoup import BeautifulSoup
+from anonBrowser import *
 
 marmoset_url="http://marmoset.student.cs.uwaterloo.ca"
 cas_url = "http://www.cas.uwaterloo.ca"
 
 """Initalize the cookies and browser."""
-browser = mechanize.Browser()
+browser = anonBrowser()
 cookie_file = "/tmp/marmosetCookies"
 cookies = cookielib.MozillaCookieJar(cookie_file)
 browser.set_cookiejar(cookies)
