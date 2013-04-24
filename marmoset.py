@@ -13,7 +13,7 @@ if __name__ == "__main__":
     parser.add_argument('problem', metavar='problem', nargs=1, help='the assignment or problem name.')
     parser.add_argument('filename', metavar='filename', nargs='?', help='the file to submit.')
     parser.add_argument('-s', '--submit', dest = 'submit', action="store_true", help='submit a file to marmoset.  Inputs: course, problem and file.')
-    parser.add_argument('-f', '--fetch', dest='fetch', action="store_true", help='fetch grades from marmoset.  Inputs: course,  problem/assignment.')
+    parser.add_argument('-f', '--fetch', dest='fetch', action="store_true", help='fetch grades from marmoset.  Inputs: course,  problem/assignment, and possible an integer.')
     args = parser.parse_args()
     if ( args.submit ):
         if ( args.filename == None ): parser.print_help()

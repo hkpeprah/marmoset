@@ -76,7 +76,7 @@ def marmoset_submit( course, assignment, fname ):
                     marmoset.form.add_file(open(fname), 'text/plain', fname)
                     marmoset.submit()
         except Exception as e:
-            print "Something went wrong.  Manually submit."
+            print "Something went wrong, manually submit."
             exit(0)
     print "Successfully submitted assignment %s"%(assignment)
     return None
@@ -116,7 +116,6 @@ def marmoset_fetch( course, asmt, num = 3 ):
                         print "%s %30s %15s %15s"%(grades[i][1], grades[i][2], grades[i][3], 
                                                   ("" if grades[i][5] == "" else str(grades[i][5]) + " / " + str(grades[i][6])))
         except Exception as e:
-            print e
             print "Something went wrong.  Manually check."
             exit(0)
     return None

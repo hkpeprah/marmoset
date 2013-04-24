@@ -20,3 +20,7 @@ Alternately, compile and run the executable (if not provided).
 * mechanize - Module for web browsing.
 * BeautifulSoup - Module for parsing web pages.
 * cookielib - Used for interacting with web session cookies; Marmoset uses cookies to keep track of login.
+
+
+###To-do
+* Add functionality to release test.
