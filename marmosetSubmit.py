@@ -19,7 +19,8 @@ browser.set_cookiejar(cookies)
 
 """Helper Functions"""
 findclass = lambda html, course: [ i.attr('href') for i in PyQuery(html).items('a') if not(re.match(course + " \(", i.text(), re.I) == None) ]
-findassignment = lambda assignment: re.compile('<a href="">\s*' + assignment + '\s*</a>\s*</td>\s*<td> <a href="(.*)"> view </a></td>\s*<td> <a href="(.*)"> submit </a>', re.I)
+findassignment = lambda assignment: re.compile('<a href="(.*)">\s+' + assignment + '\s+</a>\s+</td>\s+<td> <a href="(.*)"> view </a></td>\s+<td> <a href="(.*)"> submit </a>', re.I)
+findassignments = lambda assignment: re.compile('<a href="(.*)">\s+' + assignment + '.*\s+</a>\s+</td>\s+<td> <a href="(.*)"> view </a></td>\s+<td> <a href="(.*)"> submit </a>', re.I)
 
 def sigerr( num ):
     """signal an error and quit"""
@@ -84,7 +85,7 @@ def marmoset_submit( course, assignment, fname ):
         if link == None: sigerr(2)
         else:
             """Jump to the submit page and try to submit"""
-            new_url = marmoset_url + link.group(2)
+            new_url = marmoset_url + link.group(3)
             marmoset.open(new_url)
             marmoset.select_form(nr = 0)
             marmoset.form.add_file(open(fname), 'text/plain', fname)
@@ -104,10 +105,7 @@ def marmoset_fetch( course, asmt, num = 3 ):
         data = coursepage( course )
         marmoset = data[0]
         html = marmoset.open(data[1]).read()
-        print marmoset
-        print findassignment(asmt).search(html)
-        print findassignment(asmt).findall(html)
-        assignments = findassignment(asmt).findall(html)
+        assignments = findassignments(asmt).findall(html)
         """marks are a match of form Row Class, ID, Date, Score"""
         marks = re.compile('<tr class="(.*)">\s+<td>(.*)</td>\s+<td>(.*)</td>\s+<td>\s+(.*)\s+</td>(\s+<td>\s*(.*) / (.*)\s*</td>)?', re.I)
         for assignment in assignments:
@@ -136,16 +134,44 @@ def marmoset_long( course, assignment, submission = None, release = False ):
         link = findassignment(assignment).search(html)
         if link == None: sigerr(2)
         else:
-            page = marmoset.open(marmoset_url + link.group(1)).read()
-            long_url = re.compile('<td>' + submission + '</td>(.*\s*)*<td><a href="(.*)">view</a>').search(page)
-            if long_url == None: sigerr(4)
-            print long_url
-            return None
+            page = marmoset.open(marmoset_url + link.group(2)).read()
+            long_url = re.compile('<td><a href="(.*)">view</a></td>').findall(page)
+            if (len(long_url) == 0) or (not(submission == None) and (submission > len(long_url) or submission < 0)): 
+                sigerr(4)
+            long_url = (long_url[0] if submission == None else long_url[len(long_url) - submission])
+            page = marmoset.open(marmoset_url + long_url).read()
+            """print out the table now if release is false, otherwise we want to return where we are."""
+            if release: return (marmoset, marmoset_url + long_url)
+            details = (re.compile('<p>You received [0-9]+/[0-9]+ points for public test cases.').search(page).group(0).replace("<p>",""),
+                       re.compile('<p>You currently have [0-3]+ release').search(page).group(0).replace("<p>",""))
+            rows = re.compile('<th>(.*)</th>').findall(page) + re.compile('<td>(.*)</td>').findall(page)
+            print "Project %s: Test Results for Submission %d"%(assignment, (len(long_url) if submission == None else submission))
+            for col in xrange(0, len(rows)):
+                if rows[col] == "public" or rows[col] == "release": print
+                print "%-*s"%(15, rows[col]),
+            print "\n\n%s\n%s tokens available."%(details[0], details[1])
     except Exception as e:
-        print "Something went wrong, manually submit."
+        print "Something went wrong, manually look up."
         exit(0)
+    return None
 
 
 def marmoset_release( course, assignment, submission = None ):
     """fire off a release test for an assignment. upper limit of 99 submissions to be displayed."""
+    data = marmoset_long( course, assignment, submission, True )
+    try:
+        marmoset = data[0]
+        page = marmoset.open(data[1]).read()
+        release_url = re.compile('<a href="(.*)"> Click here to release test').search(page)
+        if release_url == None: 
+            print "Sorry, can't release test.  No release tokens available."
+            return None
+        else:
+            marmoset.open(marmoset_url + release_url.group(1))
+            marmoset.select_form(nr = 0)
+            marmoset.submit()
+    except Exception as e:
+        print "Something went wrong, manually release."
+        exit(0)
+    print "Release testing was successful."
     return None

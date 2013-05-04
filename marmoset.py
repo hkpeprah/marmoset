@@ -27,11 +27,13 @@ if __name__ == "__main__":
             except Exception as e:
                 parser.print_help()
     elif ( args.long ):
-        if ( args.filename == None ): parser.print_help()
-        try: marmoset_long(args.course[0], args.problem[0], int(args.filename))
-        except Exception as e: parser.print_help()
+        if args.filename == None: marmoset_long(args.course[0], args.problem[0])
+        else:
+            try: marmoset_long(args.course[0], args.problem[0], int(args.filename))
+            except Exception as e: parser.print_help()
     elif ( args.release ):
-        if ( args.filename == None ): parser.print_help()
-        try: marmoset_release(args.course[0], args.problem[0], int(args.filename))
-        except Exception as e: parser.print_help()
+        if ( args.filename == None ): marmoset_release(args.course[0], args.problem[0])
+        else:
+            try: marmoset_release(args.course[0], args.problem[0], int(args.filename))
+            except Exception as e: parser.print_help()
     else: parser.print_help()
