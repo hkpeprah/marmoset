@@ -18,7 +18,7 @@ Alternately, compile and run the executable (if not provided).
 
 ###Dependancies
 * mechanize - Module for web browsing.
-* BeautifulSoup - Module for parsing web pages.
+* pyquery - Use JQuery to parse web pages.
 * cookielib - Used for interacting with web session cookies; Marmoset uses cookies to keep track of login.
 
 

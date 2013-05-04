@@ -4,7 +4,7 @@
 """
 
 import re, getpass, string, mechanize, cookielib, os, sys
-from BeautifulSoup import BeautifulSoup
+from pyquery import PyQuery
 from anonBrowser import *
 
 marmoset_url="http://marmoset.student.cs.uwaterloo.ca"
@@ -15,6 +15,10 @@ browser = anonBrowser()
 cookie_file = "/tmp/marmosetCookies"
 cookies = cookielib.MozillaCookieJar(cookie_file)
 browser.set_cookiejar(cookies)
+
+
+"""Helper Functions"""
+findclass = lambda html, course: [ i.attr('href') for i in PyQuery(html).items('a') if not(re.match(course + " \(", i.text(), re.I) == None) ]
 
 
 def sigerr( num ):
@@ -60,11 +64,11 @@ def marmoset_submit( course, assignment, fname ):
             marmoset.submit()
             """Check if the course exists, if not, return error."""
             html  = marmoset.open(new_url).read()
-            link = re.compile('<a href="(.*)">\s' + course + '(.*):\s*</a>', re.I).search(html)
-            if link == None: sigerr(1)
+            link = findclass(html, course) 
+            if link == []: sigerr(1)
             else:
                 """Check if the assignment exists, if not, return error."""
-                new_url = marmoset_url + link.group(1)
+                new_url = marmoset_url + link[0]
                 html = marmoset.open(new_url).read()
                 link = re.compile('<a href="">\s+' + assignment + '\s+</a>\s+</td>\s+<td> <a href="(.*)"> view </a></td>\s+<td> <a href="(.*)"> submit </a>', re.I)
                 link = link.search(html)
@@ -97,11 +101,11 @@ def marmoset_fetch( course, asmt, num = 3 ):
             marmoset.submit()
             """Check if the course exists, if not, return error."""
             html  = marmoset.open(new_url).read()
-            link = re.compile('<a href="(.*)">\s' + course + '(.*):\s*</a>', re.I).search(html)
-            if link == None: sigerr(1)
+            link = findclass(html, course)
+            if link == []: sigerr(1)
             else:
                 """Find all occurrences of the assignment we're looking for."""
-                new_url = marmoset_url + link.group(1)
+                new_url = marmoset_url + link[0]
                 html = marmoset.open(new_url).read()
                 pattern = re.compile('<a href="(.*)">\s+' + asmt + '.*\s+</a>\s+</td>\s+<td> <a href="(.*)"> view </a></td>\s+<td> <a href="(.*)"> submit </a>', re.I)
                 assignments = re.findall(pattern, html)
