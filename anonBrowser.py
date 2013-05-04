@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python
 """anonBrowser.py - Implements the anonymous browser for using the web behind a proxy.
    Implementation as expressed in Violent Python"""
 import mechanize, cookielib, random

@@ -10,12 +10,13 @@ Note: You will need the mechanize and BeautifulSoup modules installed to run the
 
 ###How-to-Use
 Without compiling and using the executable or making the program executable, you can use the script in the following ways:
-* Submit: `python marmoset.py -s coursename assignmentname filename` or `python marmoset.py --submit coursename assignmentname filename`
-* Fetch: `python marmoset.py -f coursename assignment [number]` or `python marmoset.py --fetch coursname assignment [number]`
-* Release: `python marmoset.py -r coursename assignment submission_number` or `python marmoset.py --release`
-* Long Test: `python marmoset.py -l coursename assignment submission_number` or `python marmoset.py --long`
+* Submit: `python marmoset -s coursename assignmentname filename` or `python marmoset --submit coursename assignmentname filename`
+* Fetch: `python marmoset -f coursename assignment [number]` or `python marmoset --fetch coursname assignment [number]`
+* Release: `python marmoset -r coursename assignment submission_number` or `python marmoset --release`
+* Long Test: `python marmoset -l coursename assignment submission_number` or `python marmoset --long`
 
-If you make the script executable by using `chmod u+x marmoset.py`, you can execute it using `./marmoset.py`
+**NOTE**: The file `marmoset` is a standalone script, that can be placed in bin by itself and executed (it's a concatenation of the individual files).
+If you make the script executable by using `chmod u+x marmoset`, you can execute it using `./marmoset`
 Alternately, compile and run the executable (if not provided).
 
 
