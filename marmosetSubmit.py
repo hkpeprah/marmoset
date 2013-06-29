@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """marmosetSubmit.py - Submit code to marmoset using this script.
    author: hkpeprah
 """

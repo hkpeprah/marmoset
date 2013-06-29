@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """Script main, options, interaction, etc.
    author: hkpeprah"""
 
