@@ -9,16 +9,10 @@ class anonBrowser(mechanize.Browser):
     The anonBrowser is a browser class for navigating the web without
     leaving identification.  It supports loading session cookies,
     and making itself anonymous.
-    
-    Functions:
-        change_user_agent
-        change_proxy
-        clear_cookies
-        load_cookies
-        anonymize
     """
 
-    def __init__(self, proxies = [], user_agents = [], cookiefile = None):
+    def __init__(self, proxies = [], 
+                 user_agents = ['Mozilla/4.0', 'Firefox/6.01', 'ExactSearch', 'Nokia7110/1.0'], cookiefile = None):
         """
         Initialize the anonBrowser instance.
 
@@ -31,7 +25,7 @@ class anonBrowser(mechanize.Browser):
         mechanize.Browser.__init__(self) #inherit from mechanize Browser class
         self.set_handle_robots(False)
         self.proxies = proxies
-        self.user_agents = user_agents + ['Mozilla/4.0', 'Firefox/6.01', 'ExactSearch', 'Nokia7110/1.0']
+        self.user_agents = user_agents
         self.cookie_jar = cookielib.MozillaCookieJar(cookiefile)
         self.set_cookiejar(self.cookie_jar)
         self.load_cookies()

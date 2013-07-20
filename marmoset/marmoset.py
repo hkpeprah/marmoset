@@ -1,6 +1,6 @@
 import __init__ as docstrings
 import argparse
-import client
+import src.client as client
 
 
 def main ( arguments ):
@@ -25,6 +25,12 @@ def main ( arguments ):
     # Determine which command line argument was called and pass control
     for opt, val in args.__dict__.items():
         if val:
-            kwargs = {'method':opt, 'args':val}
-            client.marmoset(kwargs)
+            client.marmoset(method = opt, args = val)
             break
+
+
+if __name__ == "__main__":
+    import sys
+
+    main(sys.argv)
+    

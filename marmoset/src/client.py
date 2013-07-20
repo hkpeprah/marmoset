@@ -10,6 +10,20 @@ except ImportError:
     from ordereddict import OrderedDict
 
 
+DESKTOP_USER_AGENTS = [
+    "Mozilla/5.0",
+    "AppleWebKit/537.346",
+    "Chrome/29.0.1547.2",
+    "Safari/537.36",
+    "Opera/9.80",
+    "Opera/12.80",
+    "Netscape/9.1.0285",
+    "Firebird/3.6.13",
+    "Mozilla/4.0",
+    "Firefox/6.0.1"
+]
+
+
 class marmoset():
     """
     The marmoset class manages interaction with the Marmoset Submission
@@ -19,7 +33,7 @@ class marmoset():
     """
     base_url = "http://marmoset.student.cs.uwaterloo.ca"
 
-    def __init__(self, kwargs):
+    def __init__(self, **kwargs):
         """
         Initializes the marmoset browser.  Handles navigation and parsing
         of pages.
@@ -28,16 +42,23 @@ class marmoset():
         @param kwargs: Dictionary of arguments to determine method
         @return: marmoset
         """
-        self.browser = anonBrowser(cookiefile="/tmp/marmoset.session.cookies")
-        if self.authenticate():
-            try:
-                getattr(self, kwargs['method'])(*kwargs['args'])
-            except Exception, e:
-                print e
-        else:
-            raise Exception("Invalid username/password.")
+        self.browser = anonBrowser(user_agents=DESKTOP_USER_AGENTS, cookiefile="/tmp/marmoset.session.cookies")
+        username, password = None, None
 
-    def authenticate(self):
+        if 'username' in kwargs:
+            username = kwargs['username']
+
+        if 'password' in kwargs:
+            password = kwargs['password']
+
+        try:
+            getattr(self, kwargs['method'])(*kwargs['args'])
+        except KeyError:
+            pass
+        except Exception as e:
+            print e
+
+    def authenticate(self, username = None, password = None):
         """
         Attempts to authenticate the user using the given username/password
         combinations.
@@ -48,7 +69,10 @@ class marmoset():
         self.browser.open(self.base_url)
         if self.browser.geturl().find("cas") > -1:
             self.browser.select_form(nr=0)
-            username, password = prompt()
+            
+            if not username and not password:
+                username, password = prompt()
+
             self.browser.form['username'] = username
             self.browser.form['password'] = password
             self.browser.submit()
@@ -60,6 +84,7 @@ class marmoset():
 
         self.browser.select_form(nr=0)
         self.browser.submit()
+
         return True
 
     def select_course(self, course):
@@ -86,13 +111,18 @@ class marmoset():
         """
         response = self.browser.reload()
         soup = BeautifulSoup(response.read())
+        link = None
+
         for group in soup.find_all('tr'):
             links = group.find_all('a')
-            if len(links) > 0 and re.match(re.compile('(.|\s)*' + patt + '\s*', re.I), links[0].text):
+            if len(links) > 0 and links[0].text.strip().lower() == patt.lower():
                 link = group.find(lambda tag: tag.text.find(target) > -1).find('a')
                 href = link.attrs['href']
                 link = next(l for l in self.browser.links() if href == dict(l.attrs)['href'])
                 self.browser.follow_link(link)
+
+        if not link:
+            raise Exception("No matching query found for {0}.".format(patt))
 
     def submit(self, course, assignment, filename):
         """
@@ -104,6 +134,9 @@ class marmoset():
         @param filename: The name of the file we're submitting.
         @return: None
         """
+        if not self.authenticate():
+            raise Exception("Invalid username/password combination")
+
         self.select_course(course)
         self.select_and_follow(assignment, 'submit')
         self.browser.select_form(nr = 0)
@@ -111,9 +144,12 @@ class marmoset():
         self.browser.submit()
 
         if self.browser.geturl().find("/view/project.jsp?projectPK=") > -1:
-            print "Successfully submitted {0} for {1}".format(filename, assignment)
+            print "Successfully submitted {0} for {1} {2}".format(filename, course, assignment)
         else:
             print "Something went wrong.  Manually submit."
+            return False
+
+        return True
 
     def release(self, course, assignment, submission):
         """
@@ -124,6 +160,9 @@ class marmoset():
         @param submission: The submission number
         @return: None
         """
+        if not self.authenticate():
+            raise Exception("Invalid username/password combination")
+
         self.select_course(course)
         self.select_and_follow(assignment, 'view')
         self.find_submission(submission)
@@ -147,12 +186,16 @@ class marmoset():
                 self.browser.follow_link(link)
                 self.browser.select_form(nr = 0)
                 self.browser.submit()
-                print "Successfully release tested submission {0} for {1}".format(submission, assignment)
+                print "Successfully release tested submission {0} for {1} {2}".format(submission, course, 
+                                                                                      assignment)
         else:
             if len(tokens) > 0: 
                 tokens = tokens[0]
                 print " ".join(tokens.text.split())
             print "You cannot release test this submission."
+            return False
+
+        return True
 
     def long(self, course, assignment, submission):
         """
@@ -164,10 +207,14 @@ class marmoset():
         @param submission: The submission number
         @return: None
         """
+        if not self.authenticate():
+            raise Exception("Invalid username/password combination")
+
         self.select_course(course)
         self.select_and_follow(assignment, 'view')
         self.find_submission(submission)
-        self.print_table(assignment)
+        
+        return self.print_table(course, assignment)
 
     def fetch(self, course, assignment):
         """
@@ -178,9 +225,13 @@ class marmoset():
         @param assignment: The name of the assignment
         @return: None
         """
+        if not self.authenticate():
+            raise Exception("Invalid username/password combination")
+
         self.select_course(course)
         self.select_and_follow(assignment, 'view')
-        self.print_table(assignment, 6)
+
+        return self.print_table(course, assignment, 6)
 
     def find_submission(self, submission):
         """
@@ -212,7 +263,7 @@ class marmoset():
             else:
                 submission -= 1
 
-    def print_table(self, assignment, number_of_rows=sys.maxint):
+    def print_table(self, course, assignment, number_of_rows=sys.maxint):
         """
         Prints out the tables on a given Marmoset page.
 
@@ -224,8 +275,10 @@ class marmoset():
         response = self.browser.reload()
         soup = BeautifulSoup(response)
 
-        deadline = soup.find(lambda tag: tag.name == 'p' and tag.text.find('Deadline') > -1)
-        print "Project {0}: {0}\n{1}\n".format(assignment.upper(), " ".join(deadline.text.strip().split()))
+        text = next(tag for tag in soup.find_all('p') if tag.text.find("Deadline") > -1).text.strip().split()
+        deadline = [] if len(text) < 3 else text[:3]
+
+        print "{0} Project {1}: {1}\n{2}\n".format(course.upper(), assignment.upper(), " ".join(deadline))
 
         rows = soup.find_all('tr')
         headers, data = [], []
@@ -257,6 +310,8 @@ class marmoset():
                 print "{0}:  {1}".format(k, v)
             if i < len(data) - 1:
                 print
+
+        return data
 
 
 def prompt():

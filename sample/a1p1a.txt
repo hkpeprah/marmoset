@@ -1,2 +1,0 @@
-#!/bin/bash
-egrep cs246 myfile.txt | head -1
