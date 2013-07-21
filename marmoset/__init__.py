@@ -7,6 +7,7 @@
 """
 import textwrap
 from src.client import marmoset
+from src.chexpect import check_expect
 
 
 __author__="Ford Peprah"
