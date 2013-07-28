@@ -5,10 +5,10 @@
 
 if __name__ == "__main__":
     try:
-        import marmoset.marmoset as marmoset
+        import marmoset.marmoset_admin as admin
     except ImportError:
-        import marmoset as marmoset
+        import marmoset_admin as admin
 
     import sys
 
-    marmoset.main(sys.argv)
+    admin.main(sys.argv)

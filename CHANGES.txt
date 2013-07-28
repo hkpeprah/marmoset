@@ -1,1 +1,2 @@
+v0.1.1, Saturday, July 27th, 2013 -- Rewrite package layout and add utilities
 v0.1.0, Saturday, July 20th, 2013 -- Initial release.

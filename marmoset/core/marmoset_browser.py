@@ -1,9 +1,10 @@
 from bs4 import BeautifulSoup
 
-from anonBrowser import anonBrowser
+from anonbrowser import AnonBrowser
 
 import re
 import sys
+import StringIO
 try: 
     from collections import OrderedDict
 except ImportError:
@@ -24,16 +25,16 @@ DESKTOP_USER_AGENTS = [
 ]
 
 
-class marmoset():
+class Marmoset():
     """
     The marmoset class manages interaction with the Marmoset Submission
-    Server thrugh the anonBrowser.
+    Server thrugh the AnonBrowser.
 
     @ivar base_url: The base url for the marmoset submission server.
     """
     base_url = "http://marmoset.student.cs.uwaterloo.ca"
 
-    def __init__(self, **kwargs):
+    def __init__(self, stdout = True, **kwargs):
         """
         Initializes the marmoset browser.  Handles navigation and parsing
         of pages.
@@ -42,7 +43,8 @@ class marmoset():
         @param kwargs: Dictionary of arguments to determine method
         @return: marmoset
         """
-        self.browser = anonBrowser(user_agents=DESKTOP_USER_AGENTS, cookiefile="/tmp/marmoset.session.cookies")
+        self.stdout = StringIO.StringIO
+        self.browser = AnonBrowser(user_agents=DESKTOP_USER_AGENTS, cookiefile="/tmp/marmoset.session.cookies")
         username, password = None, None
 
         if 'username' in kwargs:
@@ -51,12 +53,15 @@ class marmoset():
         if 'password' in kwargs:
             password = kwargs['password']
 
+        if not stdout:
+            self.toggle_stdout()
+
         try:
             getattr(self, kwargs['method'])(*kwargs['args'])
         except KeyError:
             pass
         except Exception as e:
-            print e
+            raise(e)
 
     def authenticate(self, username = None, password = None):
         """
@@ -86,6 +91,18 @@ class marmoset():
         self.browser.submit()
 
         return True
+
+    def toggle_stdout(self):
+        """
+        Toggle stdout between the classes stdout handler and the system's standard
+        output handler.
+
+        @param self: The marmoset instance
+        @return: None
+        """
+        sys.stdout, self.stdout = self.stdout, sys.stdout
+
+        return None
 
     def select_course(self, course):
         """

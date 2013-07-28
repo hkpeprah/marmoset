@@ -12,7 +12,7 @@ def check_expect (command, testdir, expectdir):
     @param command: The command to execute the test with.
     @param testdir: Directory of tests.
     @param expectdir: Directory of expected results.
-    @return: boolean
+    @return: dict
     """
     root = os.getcwd()
 

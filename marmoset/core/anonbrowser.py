@@ -4,9 +4,9 @@ import random
 import os
 
 
-class anonBrowser(mechanize.Browser):
+class AnonBrowser(mechanize.Browser):
     """
-    The anonBrowser is a browser class for navigating the web without
+    The AnonBrowser is a browser class for navigating the web without
     leaving identification.  It supports loading session cookies,
     and making itself anonymous.
     """
@@ -14,13 +14,13 @@ class anonBrowser(mechanize.Browser):
     def __init__(self, proxies = [], 
                  user_agents = ['Mozilla/4.0', 'Firefox/6.01', 'ExactSearch', 'Nokia7110/1.0'], cookiefile = None):
         """
-        Initialize the anonBrowser instance.
+        Initialize the AnonBrowser instance.
 
         @param self: The current instance.
         @param proxies: List of proxies to use.
         @param user_agents: List of user agents.
         @param cookiefile: A cookiefile, if any, to use.
-        @return: anonBrowser
+        @return: AnonBrowser
         """
         mechanize.Browser.__init__(self) #inherit from mechanize Browser class
         self.set_handle_robots(False)
