@@ -12,6 +12,13 @@ USAGE = textwrap.dedent('''\
              [ -s course problem filename ] [ -r course problem submission ] ]
 ''')
 COMMAND_LINE_ARGUMENTS = (
+    {
+      'name': 'additional_files',
+      'args': {
+          'nargs': '*',
+          'help': 'additional files to zip with and submit.'
+      }
+    },
     { 
       'short': "-s", 
       'long': "--submit", 
