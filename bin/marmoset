@@ -1,14 +1,14 @@
 #! /usr/bin/env python
 # 2012-2013 Ford Peprah
-# A python script that acts as a wrapper for calling the Marmoset 
+# A python script that acts as a wrapper for calling the Marmoset
 # submission script.
 
 if __name__ == "__main__":
     try:
-        import marmoset.marmoset as marmoset
+        import marmoset.marmoset_admin as admin
     except ImportError:
-        import marmoset as marmoset
+        import marmoset_admin as admin
 
     import sys
 
-    marmoset.main(sys.argv)
+    admin.main(sys.argv)
