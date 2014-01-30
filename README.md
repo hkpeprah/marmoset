@@ -41,6 +41,7 @@ Dependencies
 ------------
 * mechanize
 * beautifulsoup4
+* keyring
 
 
 License

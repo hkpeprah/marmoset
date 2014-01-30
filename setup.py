@@ -22,6 +22,7 @@ setup(
     install_requires=[
         "beautifulsoup4 >= 4.2.1",
         "mechanize == 0.2.5",
+        "keyring == 3.3"
     ],
 )
 
