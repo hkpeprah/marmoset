@@ -11,59 +11,6 @@ USAGE = textwrap.dedent('''\
     [ [ -h | -v ] [ -f course problem ] [ -l course problem submission ]
              [ -s course problem filename ] [ -r course problem submission ] ]
 ''')
-COMMAND_LINE_ARGUMENTS = (
-    {
-      'name': 'additional_files',
-      'args': {
-          'nargs': '*',
-          'help': 'additional files to zip with and submit.'
-      }
-    },
-    { 
-      'short': "-s", 
-      'long': "--submit", 
-      'args': {
-          'nargs': 3,
-          'metavar': ("course", "problem", "filename"),
-          'help': "submit a file/assignment to the marmoset server."
-       }
-    },
-    { 
-      'short': "-f",
-      'long': "--fetch",
-      'args': {
-          'nargs': 2,
-          'metavar': ("course", "problem"),
-          'help': "fetch the last five(5) test results."
-      }
-    },
-    {
-      'short': "-r",
-      'long': "--release",
-      'args': {
-          'nargs': 3,
-          'metavar': ("course", "problem", "submission"),
-          'help': "release test specified submission (0 - Most Recent, Max - Oldest)"
-      }
-    },
-    {
-      'short': "-l",
-      'long': "--long",
-      'args': {
-          'nargs': 3,
-          'metavar': ("course", "problem", "submission"),
-          'help': "get the long test results for the specified submission."
-      }
-    },
-    {
-      'short': "-v",
-      'long': "--version",
-      'args': {
-          'action': "store_true",
-          'help': "print the version string."
-      }
-    },
-)
 BUG = """
            GG                                        
           0G0@             ,.                        

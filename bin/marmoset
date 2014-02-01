@@ -4,11 +4,10 @@
 # submission script.
 
 if __name__ == "__main__":
-    try:
-        import marmoset.marmoset_admin as admin
-    except ImportError:
-        import marmoset_admin as admin
-
     import sys
+    try:
+        import marmoset.admin as admin
+    except ImportError:
+        import admin as admin
 
     admin.main(sys.argv)
