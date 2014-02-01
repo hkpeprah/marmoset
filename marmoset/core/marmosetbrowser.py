@@ -146,7 +146,8 @@ class Marmoset():
         self.user, passwd = prompt()
 
         # Save to keyring if nosave isn't specified
-        if not self.nosave:
+        # Defaults to true
+        if not getattr(self, 'nosave', True):
             store_user_info(self.user, passwd)
 
         return self.user, passwd

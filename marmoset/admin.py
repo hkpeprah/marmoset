@@ -11,8 +11,8 @@ INCLUSIVE_COMMAND_LINE_ARGUMENTS = (
         'help': "user to login as, defaults to the default user"
     }),
     ("-n", "--nosave", {
-        'action': "store_true",
-        'help': "don't save the user being logged in as."
+        'action': "store_false",
+        'help': "save the user being logged in as."
     }),
     ("additional_files", {
         'nargs': "*",
