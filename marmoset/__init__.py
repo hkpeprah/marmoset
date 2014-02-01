@@ -5,8 +5,8 @@
 @license: GNU General Public License
 @version: 0.1.0
 """
-from core.marmoset_browser import Marmoset
-from utils import *
+from core.marmosetbrowser import Marmoset
+import utils
 
 
 __author__="Ford Peprah"

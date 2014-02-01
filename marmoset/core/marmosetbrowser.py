@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 
 from anonbrowser import AnonBrowser
+from key import store_user_info, get_user_info, change_default_user
 
 import re
 import sys
@@ -9,6 +10,7 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+from zipfile import ZipFile
 
 
 DESKTOP_USER_AGENTS = [
@@ -25,6 +27,10 @@ DESKTOP_USER_AGENTS = [
 ]
 
 
+class NoMatchingQueryException(Exception):
+    pass
+
+
 class Marmoset():
     """
     The marmoset class manages interaction with the Marmoset Submission
@@ -33,6 +39,15 @@ class Marmoset():
     @ivar base_url: The base url for the marmoset submission server.
     """
     base_url = "http://marmoset.student.cs.uwaterloo.ca"
+    supported_methods = [
+        'fetch',
+        'download',
+        'submit',
+        'adduser',
+        'changeuser',
+        'release',
+        'long'
+    ]
 
     def __init__(self, stdout = True, **kwargs):
         """
@@ -45,23 +60,20 @@ class Marmoset():
         """
         self.stdout = StringIO.StringIO
         self.browser = AnonBrowser(user_agents=DESKTOP_USER_AGENTS, cookiefile="/tmp/marmoset.session.cookies")
-        username, password = None, None
-
-        if 'username' in kwargs:
-            username = kwargs['username']
-
-        if 'password' in kwargs:
-            password = kwargs['password']
 
         if not stdout:
             self.toggle_stdout()
 
+        for k, v in kwargs.items():
+            if not k == 'method' or not k == 'args':
+                setattr(self, k, v)
+
         try:
             getattr(self, kwargs['method'])(*kwargs['args'])
         except KeyError:
-            pass
-        except Exception as e:
-            raise(e)
+            raise NotImplementedError("Error: %s hasn't been implemented yet."% kwargs['method'])
+        except NoMatchingQueryException as e:
+            raise NoMatchingQueryException("Error: %s not found."% e)
 
     def authenticate(self, username = None, password = None):
         """
@@ -76,7 +88,7 @@ class Marmoset():
             self.browser.select_form(nr=0)
             
             if not username and not password:
-                username, password = prompt()
+                username, password = self.login()
 
             self.browser.form['username'] = username
             self.browser.form['password'] = password
@@ -91,6 +103,53 @@ class Marmoset():
         self.browser.submit()
 
         return True
+
+    def adduser(self, username, password=None):
+        """
+        Adds a user to the marmoset keyring.
+
+        @param self: the marmoset instance
+        @param username: user's name, a string
+        @param password: user's password, a string
+        @return: None
+        """
+        if not password:
+            password = str(getpass.getpass("Enter your password: "))
+        store_user_info(username, password)
+
+    def changeuser(self, username):
+        """
+        Changes the default user for the marmoset keyring.
+
+        @param self: the marmoset instance
+        @param username: user's name, a string
+        @return: None
+        """
+        change_default_user(username)
+
+    def login(self):
+        """
+        Logs the user in, defaulting to the default keyring user if no user is specified.
+        If no default keyring user, prompts for input.
+
+        @param self: The marmoset instance
+        @return: tuple
+        """
+        if getattr(self, 'user', None):
+            self.user, passwd = get_user_info()
+        else:
+            self.user, passwd = get_user_info()
+
+        if self.user and passwd:
+            return self.user, passwd
+
+        self.user, passwd = prompt()
+
+        # Save to keyring if nosave isn't specified
+        if not self.nosave:
+            store_user_info(self.user, passwd)
+
+        return self.user, passwd
 
     def toggle_stdout(self):
         """
@@ -139,7 +198,7 @@ class Marmoset():
                 self.browser.follow_link(link)
 
         if not link:
-            raise Exception("No matching query found for {0}.".format(patt))
+            raise NoMatchingQueryException(patt)
 
     def submit(self, course, assignment, filename):
         """
@@ -157,6 +216,11 @@ class Marmoset():
         self.select_course(course)
         self.select_and_follow(assignment, 'submit')
         self.browser.select_form(nr = 0)
+
+        # If multiple files, zip and submit
+        if self.additional_files and len(self.additional_files) > 0:
+            filename = write_zip(assignment + ".zip", [filename] + self.additional_files)
+
         self.browser.form.add_file(open(filename), 'text/plain', filename)
         self.browser.submit()
 
@@ -329,6 +393,19 @@ class Marmoset():
                 print
 
         return data
+
+
+def write_zip(name, files):
+    """
+    Writes a zip file and returns the name of the file.
+
+    @param name: string, name of the file to create
+    @param files: list of strings, name of files to zip
+    """
+    with ZipFile(name, 'a') as myzip:
+        for f in files:
+            myzip.write(f)
+    return name
 
 
 def prompt():
