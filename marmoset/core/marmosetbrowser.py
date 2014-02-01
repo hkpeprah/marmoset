@@ -219,7 +219,7 @@ class Marmoset():
         self.browser.select_form(nr = 0)
 
         # If multiple files, zip and submit
-        if self.additional_files and len(self.additional_files) > 0:
+        if getattr(self, 'additional_files', None) and len(self.additional_files) > 0:
             filename = write_zip(assignment + ".zip", [filename] + self.additional_files)
 
         self.browser.form.add_file(open(filename), 'text/plain', filename)
