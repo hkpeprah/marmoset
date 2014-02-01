@@ -10,10 +10,9 @@ Marmoset is a submission server for University of Waterloo CS (Computer Science)
 
 Installation
 ------------
-* With `pip` (Python Installation Package): `sudo pip install Marmoset.0.1.0.tar.gz`
-* With `easy_install`: `easy_install Marmoset.0.1.0.tar.gz`
-
-**Note**: This package has dependencies on two Python packages, if you don't have `setuptools` installed, installation is a lot more difficult and not natively supported.
+* With `pip` (Python Installation Package): `sudo pip install Marmoset.tar.gz`
+* With `easy_install`: `easy_install Marmoset.tar.gz`
+**Note**: This package has dependencies on three Python packages, if you don't have `setuptools` installed, installation is a lot more difficult and not natively supported.
 
 
 Usage
@@ -31,9 +30,9 @@ Typical usage looks like this:
 It can also be imported and used:
 
     #!/usr/bin/env python
-    from marmoset import marmoset
+    from marmoset import Marmoset
 
-    m = marmoset(username=username, password=password)
+    m = Marmoset(username=username, password=password)
     m.submit('cs246', 'a11p4', 'a11p4.cpp')
 
 

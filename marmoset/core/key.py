@@ -1,6 +1,8 @@
 import keyring
 import getpass
-from settings import PROG
+
+
+PROG = "marmoset"
 
 
 class DuplicateUserException(Exception):

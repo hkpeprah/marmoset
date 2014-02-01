@@ -13,7 +13,7 @@ setup(
     version=marmoset.__version__,
     author=marmoset.__author__,
     author_email="user@example.com",
-    packages=['marmoset', 'marmoset.core'],
+    packages=['marmoset', 'marmoset.core', 'marmoset.utils'],
     scripts=['bin/marmoset'],
     url="http://example.com",
     license='LICENSE.txt',
