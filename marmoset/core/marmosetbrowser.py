@@ -135,10 +135,7 @@ class Marmoset():
         @param self: The marmoset instance
         @return: tuple
         """
-        if getattr(self, 'user', None):
-            self.user, passwd = get_user_info()
-        else:
-            self.user, passwd = get_user_info()
+        self.user, passwd = get_user_info(getattr(self, 'user', None))
 
         if self.user and passwd:
             return self.user, passwd
@@ -201,7 +198,7 @@ class Marmoset():
         if not link:
             raise NoMatchingQueryException(patt)
 
-    def submit(self, course, assignment, filename):
+    def submit(self, course, assignment, filename, zipname=None):
         """
         Submits a file to the specified assignment and course.
 
@@ -214,13 +211,20 @@ class Marmoset():
         if not self.authenticate():
             raise Exception("Invalid username/password combination")
 
+        if not zipname:
+            zipname = getattr(self, 'zipname', "%s.zip"% assignment)
+
         self.select_course(course)
         self.select_and_follow(assignment, 'submit')
         self.browser.select_form(nr = 0)
 
         # If multiple files, zip and submit
-        if getattr(self, 'additional_files', None) and len(self.additional_files) > 0:
-            filename = write_zip(assignment + ".zip", [filename] + self.additional_files)
+        additional_files = getattr(self, 'additional_files', [])
+        if len(additional_files) > 0:
+            additional_files += (filename if type(filename) == list else [filename])
+            filename = write_zip(zipname, additional_files)
+        elif type(filename) == list:
+            filename = write_zip(zipname, filename)
 
         self.browser.form.add_file(open(filename), 'text/plain', filename)
         self.browser.submit()
@@ -403,7 +407,7 @@ def write_zip(name, files):
     @param name: string, name of the file to create
     @param files: list of strings, name of files to zip
     """
-    with ZipFile(name, 'a') as myzip:
+    with ZipFile(name, 'w') as myzip:
         for f in files:
             myzip.write(f)
     return name

@@ -17,6 +17,11 @@ INCLUSIVE_COMMAND_LINE_ARGUMENTS = (
     ("additional_files", {
         'nargs': "*",
         'help': "additional files to zip with and submit"
+    }),
+    ("-z", "--zipname", {
+        'nargs': 1,
+        'metavar': ("zipname"),
+        'help': "name of the zipfile to submit"
     })
 )
 
@@ -34,7 +39,7 @@ EXCLUSIVE_COMMAND_LINE_ARGUMENTS = (
     ("-s", "--submit", {
         'nargs': 3,
         'metavar': ("course", "problem", "filename"),
-        'help': "submit a file or assignment to the marmoset server."
+        'help': "submit file(s) to the marmoset server."
     }),
     ("-f", "--fetch", {
         'nargs': 2,
@@ -63,7 +68,7 @@ EXCLUSIVE_COMMAND_LINE_ARGUMENTS = (
 )  
 
 
-def main (arguments):
+def main():
     """
     The main command-line argument parser for the Marmoset submission
     command-line interface tool.  Parses the arguments and determines
@@ -76,7 +81,6 @@ def main (arguments):
                             usage=USAGE,
                             description=DESCRIPTION)
     group = parser.add_mutually_exclusive_group(required=True)
-    arguments = arguments[1:] # strip progname
     for arg in INCLUSIVE_COMMAND_LINE_ARGUMENTS:
         parser.add_argument(*arg[:-1], **arg[-1])
     for arg in EXCLUSIVE_COMMAND_LINE_ARGUMENTS:
@@ -84,13 +88,15 @@ def main (arguments):
 
     # Set the arguments
     parsed = {}
-    for k, v in vars(parser.parse_args(arguments)).items():
+    for k, v in vars(parser.parse_args()).items():
         if not v == None:
             if k in Marmoset.supported_methods:
                 parsed['method'] = k
                 parsed['args'] = v
             else:
                 parsed[k] = v
+                if type(v) == list:
+                    parsed[k] = (v if k == 'additional_files' else v[0])
     if not 'method' in parsed:
         parser.print_help()
         return None
@@ -99,5 +105,5 @@ def main (arguments):
 
 if __name__ == "__main__":
     import sys
-    main(sys.argv)
+    main()
     
