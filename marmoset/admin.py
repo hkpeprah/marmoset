@@ -5,7 +5,7 @@ from core.marmosetbrowser import Marmoset
 
 
 INCLUSIVE_COMMAND_LINE_ARGUMENTS = (
-    ("-u", "--user", {
+    ("-u", "--username", {
         'nargs': 1,
         'metavar': ("username"),
         'help': "user to login as, defaults to the default user"
