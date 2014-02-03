@@ -12,6 +12,7 @@ Installation
 ------------
 * With `pip` (Python Installation Package): `sudo pip install Marmoset.tar.gz`
 * With `easy_install`: `easy_install Marmoset.tar.gz`
+
 **Note**: This package has dependencies on three Python packages, if you don't have `setuptools` installed, installation is a lot more difficult and not natively supported.
 
 
