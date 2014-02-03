@@ -68,12 +68,14 @@ class Marmoset():
             if not k == 'method' or not k == 'args':
                 setattr(self, k, v)
 
-        try:
-            getattr(self, kwargs['method'])(*kwargs['args'])
-        except KeyError:
-            raise NotImplementedError("Error: %s hasn't been implemented yet."% kwargs['method'])
-        except NoMatchingQueryException as e:
-            raise NoMatchingQueryException("Error: %s not found."% e)
+        method = kwargs.get('method', None)
+        if method:
+            try:
+                getattr(self, method)(*kwargs['args'])
+            except KeyError:
+                raise NotImplementedError("Error: %s hasn't been implemented yet."% kwargs['method'])
+            except NoMatchingQueryException as e:
+                raise NoMatchingQueryException("Error: %s not found."% e)
 
     def authenticate(self, username = None, password = None):
         """
@@ -127,7 +129,7 @@ class Marmoset():
         """
         change_default_user(username)
 
-    def login(self):
+    def login(self, username=None, password=None):
         """
         Logs the user in, defaulting to the default keyring user if no user is specified.
         If no default keyring user, prompts for input.
@@ -135,19 +137,22 @@ class Marmoset():
         @param self: The marmoset instance
         @return: tuple
         """
-        self.user, passwd = get_user_info(getattr(self, 'user', None))
+        self.username = username if username else getattr(self, 'username', None)
+        password = password if password else getattr(self, 'password', None)
+        if not password:
+            _, password = get_user_info(self.username)
 
-        if self.user and passwd:
-            return self.user, passwd
+        if self.username and password:
+            return self.username, password
 
-        self.user, passwd = prompt()
+        self.username, password = prompt()
 
         # Save to keyring if nosave isn't specified
         # Defaults to true
         if not getattr(self, 'nosave', True):
-            store_user_info(self.user, passwd)
+            store_user_info(self.username, password)
 
-        return self.user, passwd
+        return self.username, password
 
     def toggle_stdout(self):
         """
