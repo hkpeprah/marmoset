@@ -9,7 +9,7 @@ DESCRIPTION = textwrap.dedent("""\
 """)
 USAGE = textwrap.dedent('''\
     [ [ -h | -v ] [ -f course problem ] [ -l course problem submission ]
-             [ -s course problem filename ] [ -r course problem submission ] ]
+             [ -s course problem file(s) [- z zipfile] ] [ -r course problem submission ] ]
 ''')
 BUG = """
            GG                                        
