@@ -42,7 +42,7 @@ Typical usage looks like this:
     $ marmoset submit cs246 a11p4 a11p4.cpp
     Succesfully submitted a11p4 for cs246
 
-    $ marmoset --release cs246 a11p4 1
+    $ marmoset release cs246 a11p4 1
     You have 3 release tokens left.
     Release test this submission [y/n]? y
     Successfully release tested submission #1 for a11p4.
