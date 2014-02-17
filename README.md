@@ -38,6 +38,7 @@ Usage
 Commands have additional optional arguments and flags.  For full help run `marmoset --help` or `marmoset CMD --help` for the specific command.
 
 Typical usage looks like this:
+
     $ marmoset submit cs246 a11p4 a11p4.cpp
     Succesfully submitted a11p4 for cs246
 
@@ -47,6 +48,7 @@ Typical usage looks like this:
     Successfully release tested submission #1 for a11p4.
 
 It can also be imported and used:
+
     from marmoset import Marmoset
 
     m = Marmoset(username=username, password=password)
