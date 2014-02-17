@@ -16,32 +16,43 @@ Installation
 **Note**: This package has dependencies on three Python packages, if you don't have `setuptools` installed, installation is a lot more difficult and not natively supported.
 
 
-Usage
------
-Typical usage looks like this:
-
-    $ marmoset --submit cs246 a11p4 a11p4.cpp
-    Succesfully submitted a11p4.cpp to a11p4.
-
-    $ marmoset --release cs246 a11p4 0
-    You have 3 release tokens left.
-    Release test this submission [y/n]? y
-    Successfully release tested submission #0 for a11p4.
-
-It can also be imported and used:
-
-    #!/usr/bin/env python
-    from marmoset import Marmoset
-
-    m = Marmoset(username=username, password=password)
-    m.submit('cs246', 'a11p4', 'a11p4.cpp')
-
-
 Dependencies
 ------------
 * mechanize
 * beautifulsoup4
 * keyring
+
+
+Usage
+-----
+
+    | Command    | Arguments                         | Description |
+    | -----------| --------------------------------- |
+    | download   | course assignment [submission]    | Downloads the specified submission.  Defaults to last.                |
+    | fetch      | course assignment [N]             | Fetches the last N submissions.  Defaults to 5.                       |
+    | keyring    | username                          | Perform operations on the marmoset keyring.                           |
+    | long       | course assignment [submission]    | Get the long results for the specified submission.  Defaults to last. |
+    | release    | course assignment [submission]    | Release test the specified submission.  Defaults to the last.         |
+    | submit     | course assignment file [file...]  | Submit the listed file(s) to the specified assignment.                |
+
+    Commands have additional optional arguments and flags.  For full help run `marmoset --help` or `marmoset CMD --help` for the specific command.
+
+    Typical usage looks like this:
+        $ marmoset submit cs246 a11p4 a11p4.cpp
+        Succesfully submitted a11p4 for cs246
+
+        $ marmoset --release cs246 a11p4 1
+        You have 3 release tokens left.
+        Release test this submission [y/n]? y
+        Successfully release tested submission #1 for a11p4.
+
+    It can also be imported and used:
+        ```
+            from marmoset import Marmoset
+
+            m = Marmoset(username=username, password=password)
+            m.submit('cs246', 'a11p4', 'a11p4.cpp')
+        ```
 
 
 License

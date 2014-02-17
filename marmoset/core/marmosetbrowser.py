@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 
 from anonbrowser import AnonBrowser
-from key import store_user_info, get_user_info, change_default_user
 
 import re
 import sys
@@ -27,6 +26,14 @@ DESKTOP_USER_AGENTS = [
 ]
 
 
+class NotTestedYet(Exception):
+    pass
+
+
+class BrowserException(Exception):
+    pass
+
+
 class NoMatchingQueryException(Exception):
     pass
 
@@ -39,17 +46,9 @@ class Marmoset():
     @ivar base_url: The base url for the marmoset submission server.
     """
     base_url = "http://marmoset.student.cs.uwaterloo.ca"
-    supported_methods = [
-        'fetch',
-        'download',
-        'submit',
-        'adduser',
-        'changeuser',
-        'release',
-        'long'
-    ]
+    cookiefile = "/tmp/marmoset.session.cookies"
 
-    def __init__(self, stdout = True, **kwargs):
+    def __init__(self, username=None, password=None, **kwargs):
         """
         Initializes the marmoset browser.  Handles navigation and parsing
         of pages.
@@ -58,26 +57,11 @@ class Marmoset():
         @param kwargs: Dictionary of arguments to determine method
         @return: marmoset
         """
-        self.stdout = StringIO.StringIO
-        self.browser = AnonBrowser(user_agents=DESKTOP_USER_AGENTS, cookiefile="/tmp/marmoset.session.cookies")
+        self.browser = AnonBrowser(user_agents=DESKTOP_USER_AGENTS, cookiefile=self.cookiefile)
+        self.username = username
+        self.password = password
 
-        if not stdout:
-            self.toggle_stdout()
-
-        for k, v in kwargs.items():
-            if not k == 'method' or not k == 'args':
-                setattr(self, k, v)
-
-        method = kwargs.get('method', None)
-        if method:
-            try:
-                getattr(self, method)(*kwargs['args'])
-            except KeyError:
-                raise NotImplementedError("Error: %s hasn't been implemented yet."% kwargs['method'])
-            except NoMatchingQueryException as e:
-                raise NoMatchingQueryException("Error: %s not found."% e)
-
-    def authenticate(self, username = None, password = None):
+    def authenticate(self, username=None, password=None):
         """
         Attempts to authenticate the user using the given username/password
         combinations.
@@ -106,65 +90,19 @@ class Marmoset():
 
         return True
 
-    def adduser(self, username, password=None):
-        """
-        Adds a user to the marmoset keyring.
-
-        @param self: the marmoset instance
-        @param username: user's name, a string
-        @param password: user's password, a string
-        @return: None
-        """
-        if not password:
-            password = str(getpass.getpass("Enter your password: "))
-        store_user_info(username, password)
-
-    def changeuser(self, username):
-        """
-        Changes the default user for the marmoset keyring.
-
-        @param self: the marmoset instance
-        @param username: user's name, a string
-        @return: None
-        """
-        change_default_user(username)
-
     def login(self, username=None, password=None):
         """
-        Logs the user in, defaulting to the default keyring user if no user is specified.
-        If no default keyring user, prompts for input.
+        Logs the user in
 
         @param self: The marmoset instance
         @return: tuple
         """
-        self.username = username if username else getattr(self, 'username', None)
-        password = password if password else getattr(self, 'password', None)
-        if not password:
-            _, password = get_user_info(self.username)
+        self.username = username if username else self.username
+        self.password = password if password else self.password
+        self.browser.delete_cookies()
+        self.browser.clear_cookies(self.cookiefile)
 
-        if self.username and password:
-            return self.username, password
-
-        self.username, password = prompt()
-
-        # Save to keyring if nosave isn't specified
-        # Defaults to true
-        if not getattr(self, 'nosave', True):
-            store_user_info(self.username, password)
-
-        return self.username, password
-
-    def toggle_stdout(self):
-        """
-        Toggle stdout between the classes stdout handler and the system's standard
-        output handler.
-
-        @param self: The marmoset instance
-        @return: None
-        """
-        sys.stdout, self.stdout = self.stdout, sys.stdout
-
-        return None
+        return self.username, self.password
 
     def select_course(self, course):
         """
@@ -203,7 +141,7 @@ class Marmoset():
         if not link:
             raise NoMatchingQueryException(patt)
 
-    def submit(self, course, assignment, filename, zipname=None):
+    def submit(self, course, assignment, files, zipname=None):
         """
         Submits a file to the specified assignment and course.
 
@@ -214,7 +152,7 @@ class Marmoset():
         @return: None
         """
         if not self.authenticate():
-            raise Exception("Invalid username/password combination")
+            raise BrowserException("Invalid username/password combination for %s"%self.username)
 
         if not zipname:
             zipname = getattr(self, 'zipname', "%s.zip"% assignment)
@@ -224,152 +162,241 @@ class Marmoset():
         self.browser.select_form(nr = 0)
 
         # If multiple files, zip and submit
-        additional_files = getattr(self, 'additional_files', [])
-        if len(additional_files) > 0:
-            additional_files += (filename if type(filename) == list else [filename])
-            filename = write_zip(zipname, additional_files)
-        elif type(filename) == list:
-            filename = write_zip(zipname, filename)
+        if type(files) == list:
+            filename = write_zip(zipname, files)
+        else:
+            filename = files
 
         self.browser.form.add_file(open(filename), 'text/plain', filename)
         self.browser.submit()
 
         if self.browser.geturl().find("/view/project.jsp?projectPK=") > -1:
-            print "Successfully submitted {0} for {1} {2}".format(filename, course, assignment)
-        else:
-            print "Something went wrong.  Manually submit."
-            return False
+            return True
 
-        return True
+        return False
 
-    def release(self, course, assignment, submission):
+    def get_num_release_tokens(self, course, assignment, submission=None):
         """
-        Release tests the specified submission for the assignment.
+        Gets the number of release tokens the user has available to
+        theme.
 
-        @param self: The masonry isntance
-        @param assignment: The name of the assignment
-        @param submission: The submission number
-        @return: None
+        @param self: The Marmoset instance
+        @param course: The name of the course
+        @param assignment: The assignment to look at
+        @return: int
         """
         if not self.authenticate():
-            raise Exception("Invalid username/password combination")
+            raise BrowserException("Invalid username/password combination for %s"%self.username)
 
         self.select_course(course)
         self.select_and_follow(assignment, 'view')
         self.find_submission(submission)
-        
+
         response = self.browser.reload()
         soup = BeautifulSoup(response.read())
+        tokens = soup.find_all(lambda tag: tag.name == 'p' and re.search('^You currently have', tag.text))
 
+        if len(tokens) == 0:
+            raise BrowserException("This submission has no release tests.")
+        elif type(tokens[0]) != str:
+            tokens = list(token.text for token in tokens)
+        tokens = re.search("[0-9]+", " ".join(tokens)).group(0)
+        return int(tokens)
+
+    def release(self, course, assignment, submission=None):
+        """
+        Release tests the specified submission for the assignment.
+
+        @param self: The marmoset isntance
+        @param assignment: The name of the assignment
+        @param submission: The submission number
+        @return: None
+        """
+        tokens = self.get_num_release_tokens(course, assignment, submission)
+        response = self.browser.reload()
+        soup = BeautifulSoup(response.read())
         release_link = soup.find_all(lambda tag: tag.name == 'a' and tag.text.find('Click here to release') > -1)
-        tokens = soup.find_all(lambda tag: tag.name == 'p' and tag.text.find('You currently have') > -1)
 
-        if len(release_link) > 0:
+        if len(release_link) > 0 and tokens > 0:
             release_link = release_link[0]
             link = next(l for l in self.browser.links() if release_link.attrs['href'] == dict(l.attrs)['href'])
-            if len(tokens) > 0:
-                tokens = tokens[0]
-                print " ".join(tokens.text.split())
-            proceed = str(raw_input("Release test this submission [y/n]? "))
-            if len(proceed) > 0 and proceed[0] == 'y':
-                submission = next(tag for tag in soup.find_all('h2') if tag.text.find('Submission') > -1)
-                submission = submission.text.split()[1][:-1]
-                self.browser.follow_link(link)
-                self.browser.select_form(nr = 0)
-                self.browser.submit()
-                print "Successfully release tested submission {0} for {1} {2}".format(submission, course, 
-                                                                                      assignment)
+            submission = next(tag for tag in soup.find_all('h2') if tag.text.find('Submission') > -1)
+            submission = submission.text.split()[1][:-1]
+            self.browser.follow_link(link)
+            self.browser.select_form(nr = 0)
+            self.browser.submit()
+            return True
+        elif tokens == 0:
+            raise BrowserException("Can't release test %s, %s tokens available."%(assignment, tokens))
         else:
-            if len(tokens) > 0: 
-                tokens = tokens[0]
-                print " ".join(tokens.text.split())
-            print "You cannot release test this submission."
-            return False
+            raise BrowserException("Can't release test %s at the moment."%(assignment))
 
-        return True
+        return False
 
-    def long(self, course, assignment, submission):
+    def long(self, course, assignment, submission=None):
         """
         Gets the detailed test results for a specified assingment based on the submission
         number.
 
-        @param self: The masonry instance
+        @param self: The marmoset instance
         @param assignment: The name of the assignment
         @param submission: The submission number
         @return: None
         """
         if not self.authenticate():
-            raise Exception("Invalid username/password combination")
+            raise BrowserException("Invalid username/password combination for %s"%self.username)
 
         self.select_course(course)
         self.select_and_follow(assignment, 'view')
         self.find_submission(submission)
-        
-        return self.print_table(course, assignment)
+        data = self.get_table(course, assignment)
+        return data
 
-    def fetch(self, course, assignment):
+    def fetch(self, course, assignment, submissions=5):
         """
-        Fetches the five most recent short results for a specified assignment.
+        Fetches the n most recent short results for a specified assignment.
 
-        @param self: The masonry instance
+        @param self: The marmoset instance
         @param course: The name of the course
         @param assignment: The name of the assignment
         @return: None
         """
         if not self.authenticate():
-            raise Exception("Invalid username/password combination")
+            raise BrowserException("Invalid username/password combination for %s"%self.username)
+
+        submissions = submissions if submissions else 5
+        self.select_course(course)
+        self.select_and_follow(assignment, 'view')
+        data = self.get_table(course, assignment, submissions + 1)
+        return data
+
+    def download(self, course, assignment, submission=None, zipname=None):
+        """
+        Downloads the specified submission.  Defaults to the most recent
+        submission.
+
+        @param self: The marmoset instance
+        @param course: The name of the course
+        @param assignment: The name of the assignment
+        @param submission: The submission number
+        @param zipname: The name of the zipfile to create
+        @return: File
+        """
+        if not self.authenticate():
+            raise BrowserException("Invalid username/password combination for %s"%self.username)
 
         self.select_course(course)
         self.select_and_follow(assignment, 'view')
 
-        return self.print_table(course, assignment, 6)
-
-    def find_submission(self, submission):
-        """
-        Finds the specified submission and follows the link.
-
-        @param self: The marmoset instance
-        @param submission: The submission number
-        """
-        submission = int(submission)
+        f = None
         response = self.browser.reload()
         soup = BeautifulSoup(response.read())
 
-        links = self.browser.links()
-        detail_links = soup.find_all(lambda tag: tag.name == 'a' and tag.text.find('view') > -1)
-        for i in range(0, len(detail_links)):
-            link = detail_links[i]
+        details = []
+        rows = soup.find_all(lambda tag: tag.name == 'tr')
+        for row in rows:
+            if row.has_attr('class'):
+                cell = row.find_all('td')[-2]
+                cell = re.sub(r'[\t\n\r]+', ' ', cell.text)
+                details.append(cell)
+        links = soup.find_all(lambda tag: tag.name == 'a' and tag.text.find('download') > -1)
+        links = list(l.attrs['href'] for l in links)
+        submission = int(submission) if submission else len(links)
 
-            try:
-                link = next(l for l in links if dict(l.attrs)['href'] == link.attrs['href'])
-            except StopIteration:
-                pass
+        # check possible error conditions
+        if submission == 0:
+            raise BrowserException("No submission 0")
+        elif len(links) == 0:
+            raise BrowserException("No submissions available.")
+        elif submission > len(links) and submission > len(details):
+            raise BrowserException("Invalid submission number %s" % submission)
+        elif submission > len(links):
+            index = (submission - 1) * -1
+            raise BrowserException("Submission # %s %s "%(submission, details[index]))
 
-            if submission == 0:
-                self.browser.follow_link(link)
-                break
-            elif i + 1 == len(detail_links):
-                self.browser.follow_link(link)
-                break
-            else:
-                submission -= 1
+        index = (submission - 1) * -1
+        link = self.base_url + links[index]
 
-    def print_table(self, course, assignment, number_of_rows=sys.maxint):
+        zipname = zipname if zipname else assignment + '.zip'
+        f = self.browser.retrieve(link, zipname)[0]
+
+        return f
+
+    def find_submission(self, submission=None):
         """
-        Prints out the tables on a given Marmoset page.
+        Finds the specified submission on the current page and follows the link.
+        Defaults to last submission.
 
         @param self: The marmoset instance
-        @param assignment: The assignment we're looking at
-        @param number_of_rows: The number of rows to print
+        @param submission: The submission number
         @return: None
+        """
+        response = self.browser.reload()
+        soup = BeautifulSoup(response.read())
+
+        details = []
+        rows = soup.find_all(lambda tag: tag.name == 'tr')
+        for row in rows:
+            if row.has_attr('class'):
+                cell = row.find_all('td')[-2]
+                cell = re.sub(r'[\t\n\r]+', ' ', cell.text)
+                details.append(cell)
+        links = soup.find_all(lambda tag: tag.name == 'a' and tag.text.find('view') > -1)
+        links = list(link.attrs['href'] for link in links)
+
+        index = -1 * (int(submission) if submission else len(details))
+        submission = int(submission) if submission else len(details)
+
+        # check possible error conditions
+        if submission <= 0:
+            raise BrowserException("No submission #%s"%submission)
+        elif len(links) == 0:
+            raise BrowserException("No submissions available.")
+        elif submission > len(links) and submission > len(details):
+            raise BrowserException("Invalid submission number %s" % submission)
+        elif submission > len(links):
+            raise BrowserException("Submission # %s %s "%(submission, details[index]))
+
+        links = list(l for l in self.browser.links() if dict(l.attrs)['href'] in links)
+        self.browser.follow_link(links[index])
+
+    def get_assignment_deadline(self, course, assignment):
+        """
+        Gets the deadline of an assignment.  Returned as a datetime object.
+
+        @param self: The marmoset instance
+        @param course: The course we're looking at
+        @param assignment: The assignment we're looking at
+        @return: string
+        """
+        if not self.authenticate():
+            raise BrowserException("Invalid username/password combination for %s"%self.username)
+
+        self.select_course(course)
+        self.select_and_follow(assignment, 'view')
+        response = self.browser.reload();
+        soup = BeautifulSoup(response)
+
+        text = next(tag for tag in soup.find_all('p') if tag.text.find("Deadline") > -1).text.strip().split()
+        deadline = [] if len(text) < 3 else text[:3]
+
+        return deadline
+
+    def get_table(self, course, assignment, number_of_rows=sys.maxint):
+        """
+        Gets the relevant data pertaining to a course
+
+        @param self: The marmoset instance
+        @param course: The course we're looking at
+        @param assignment: The assignment we're looking at
+        @param number_of_rows: The number of rows to return
+        @return: dict
         """
         response = self.browser.reload()
         soup = BeautifulSoup(response)
 
         text = next(tag for tag in soup.find_all('p') if tag.text.find("Deadline") > -1).text.strip().split()
         deadline = [] if len(text) < 3 else text[:3]
-
-        print "{0} Project {1}: {1}\n{2}\n".format(course.upper(), assignment.upper(), " ".join(deadline))
 
         rows = soup.find_all('tr')
         headers, data = [], []
@@ -395,13 +422,6 @@ class Marmoset():
             if len(td) > 0:
                 data.append(OrderedDict(zip(headers, td)))
 
-        for i in range(0, len(data)):
-            d = data[i]
-            for k, v in d.items():
-                print "{0}:  {1}".format(k, v)
-            if i < len(data) - 1:
-                print
-
         return data
 
 
@@ -416,17 +436,3 @@ def write_zip(name, files):
         for f in files:
             myzip.write(f)
     return name
-
-
-def prompt():
-    """
-    Prompts a user for their authentication and returns
-    the results as a tuple.
-
-    @return: tuple
-    """
-    import getpass
-    username = str(raw_input("Enter your username: "))
-    password = str(getpass.getpass("Enter your password: "))
-
-    return username, password
