@@ -46,6 +46,9 @@ def store_user_info(username, password):
     current = getpass.getuser()
     # Add user to the list of Marmoset users for the current user
     users = keyring.get_password(PROG, current)
+    if username in users:
+        return
+
     users += "%s," % username
     keyring.set_password(PROG, current, users)
 
@@ -86,6 +89,23 @@ def change_default_user(username):
     # Get the current user list and rearrange
     current = getpass.getuser()
     users = keyring.get_password(PROG, current)
-    users = users.split(",")
-    users = [username] + users.remove(username)
-    keyring.set_password(PROG, current, users)
+    users = [username] + filter(lambda u: u != username, users.split(","))
+    keyring.set_password(PROG, current, ",".join(users))
+
+
+def remove_user(username):
+    """
+    Remove the information for the specified user from the keyring.
+
+    @param username: user's name, a string.
+    @return: None
+    """
+    if not username:
+        raise NoUserException("Error: expected a username, given None.")
+    if not user_exists(username):
+        raise NoUserException("Error: %s is not a valid user."% username)
+    current = getpass.getuser()
+    users = keyring.get_password(PROG, current)
+    users = filter(lambda u: u != username, users.split(","))
+    keyring.set_password(PROG, current, ",".join(users))
+    keyring.delete_password(PROG, username)

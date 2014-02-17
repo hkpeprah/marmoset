@@ -26,21 +26,40 @@ class AnonBrowser(mechanize.Browser):
         self.set_handle_robots(False)
         self.proxies = proxies
         self.user_agents = user_agents
+        self.cookie_path = cookiefile
         self.cookie_jar = cookielib.MozillaCookieJar(cookiefile)
         self.set_cookiejar(self.cookie_jar)
         self.load_cookies()
         self.change_user_agent()
         self.change_proxy()
 
-    def clear_cookies(self):
+    def clear_cookies(self, cookiefile=None):
         """
         Clear the active cookies in the current session.
 
         @param self: The current instance.
+        @param cookiefile: Name of new cookiefile
         @return: None
         """
-        self.cookie_jar = cookielib.LWPCookieJar()
+        if cookiefile:
+            self.cookie_path = cookiefile
+            self.cookie_jar = cookielib.MozillaCookieJar(cookiefile)
+        else:
+            self.cookie_jar = cookielib.LWPCookieJar()
         self.set_cookiejar(self.cookie_jar)
+
+    def delete_cookies(self):
+        """
+        Deletes a cook file on the system.
+
+        @param self: The current instance
+        @return: None
+        """
+        self.clear_cookies()
+        try:
+            os.remove(self.cookie_path)
+        except OSError:
+            pass
 
     def load_cookies(self):
         """

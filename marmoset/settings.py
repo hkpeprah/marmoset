@@ -2,15 +2,16 @@ import textwrap
 
 
 PROG = "marmoset"
-VERSION = "0.1.1"
+VERSION = "1.0.0"
 DESCRIPTION = textwrap.dedent("""\
    A command line tool for interacting with the Marmoset Submission Server.
    -------------------------------------------------------------------------
 """)
-USAGE = textwrap.dedent('''\
+USAGE = textwrap.dedent("""\
     [ [ -h | -v ] [ -f course problem ] [ -l course problem submission ]
              [ -s course problem file(s) [- z zipfile] ] [ -r course problem submission ] ]
-''')
+""")
+EPILOG = ""
 BUG = """
            GG                                        
           0G0@             ,.                        
