@@ -1,6 +1,7 @@
 Marmoset
 ========
-###[DOWNLOAD LINK](http://raw.github.com/hkpeprah/marmoset/master/downloads/Marmoset.tar.gz)
+###Download
+Check the releases section.
 
 
 Description
