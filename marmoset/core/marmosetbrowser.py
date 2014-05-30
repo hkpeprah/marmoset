@@ -434,5 +434,7 @@ def write_zip(name, files):
     """
     with ZipFile(name, 'w') as myzip:
         for f in files:
+            if f == name:
+                continue
             myzip.write(f)
     return name
