@@ -8,6 +8,7 @@
 from core.marmosetbrowser import Marmoset, NotTestedYet, BrowserException, NoMatchingQueryException
 from core.marmosetsession import MarmosetSession
 import utils
+import admin
 
 
 __author__="Ford Peprah"

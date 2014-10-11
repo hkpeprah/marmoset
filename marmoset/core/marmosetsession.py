@@ -90,6 +90,7 @@ class MarmosetSession():
             assignment = kwargs.get('assignment', None)
             submission = kwargs.get('submission', None)
             files = kwargs.get('files', None)
+            files = files[0] if type(files) == list and len(files) == 1 else files
 
             # Determine appropriate Marmoset browser action
             # Assumes successful login
