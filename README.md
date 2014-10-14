@@ -61,7 +61,7 @@ License
     Marmoset Submission Script
     The Marmoset submission script allows users to submit and test their
     programs to the University of Waterloo Marmoset server.
-    Copyright (C) 2012-2013  Ford Peprah
+    Copyright (C) 2012-2014  Ford Peprah
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

@@ -152,10 +152,10 @@ class Marmoset():
         @return: None
         """
         if not self.authenticate():
-            raise BrowserException("Invalid username/password combination for %s"%self.username)
+            raise BrowserException("Invalid username/password combination for %s" % self.username)
 
         if not zipname:
-            zipname = getattr(self, 'zipname', "%s.zip"% assignment)
+            zipname = getattr(self, 'zipname', "%s.zip" % assignment)
 
         self.select_course(course)
         self.select_and_follow(assignment, 'submit')
