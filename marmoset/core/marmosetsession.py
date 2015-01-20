@@ -96,10 +96,14 @@ class MarmosetSession():
             # Assumes successful login
             if method == 'fetch':
                 data = self.browser.fetch(course, assignment, submission)
-                for d in data:
-                    for k, v in d.items():
-                        print "%s: %s"%(k.capitalize(), v)
-                    print
+                if len(data) == 0:
+                    print 'No submissions found.'
+                else:
+                    for (i, d) in enumerate(data):
+                        for k, v in d.items():
+                            print "%s: %s"%(k.capitalize(), v)
+                        if i < len(data) - 1:
+                            print
 
             elif method == 'download':
                 f = self.browser.download(course, assignment, submission)

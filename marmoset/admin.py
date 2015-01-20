@@ -33,7 +33,7 @@ def main():
     """
     parser = ArgumentParser(prog=PROG,
                             description=DESCRIPTION,
-                            version=VERSION,
+                            version="%s %s" %(PROG, VERSION),
                             epilog=EPILOG,
                             formatter_class = lambda prog: HelpFormatter(prog, max_help_position=30))
 

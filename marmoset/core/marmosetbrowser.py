@@ -73,7 +73,7 @@ class Marmoset():
         @param self: The marmoset instance
         @return: boolean
         """
-        self.browser.open(self.base_url)
+        response = self.browser.open(self.base_url)
         if self.browser.geturl().find("cas") > -1:
             self.browser.select_form(nr=0)
             
@@ -82,14 +82,32 @@ class Marmoset():
 
             self.browser.form['username'] = username
             self.browser.form['password'] = password
-            self.browser.submit()
+            response = self.browser.submit()
 
             if self.browser.geturl().find("cas") > -1:
                 return False
             
             self.browser.save_cookies()
 
-        self.browser.select_form(nr=0)
+        user = 'campusUID'
+        content = response.read()
+        soup = BeautifulSoup(content)
+        found = False
+        nr = 0
+
+        for form in soup.find_all('form'):
+            inp = form.find(lambda tag: dict(tag.attrs)['name'] == user)
+            if inp is None:
+                continue
+            elif dict(inp.attrs)['value'] == username:
+                found = True
+                break
+            nr += 1
+
+        if not found:
+            return False
+
+        self.browser.select_form(nr=nr)
         self.browser.submit()
 
         return True

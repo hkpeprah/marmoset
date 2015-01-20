@@ -3,16 +3,17 @@
 @authors: Ford Peprah
 @copyright: Ford Peprah, 2012, 2013
 @license: GNU General Public License
-@version: 1.0.0
+@version: 1.1.3
 """
 from core.marmosetbrowser import Marmoset, NotTestedYet, BrowserException, NoMatchingQueryException
 from core.marmosetsession import MarmosetSession
+from settings import VERSION, PROG
 import utils
 import admin
 
 
 __author__="Ford Peprah"
-__prog__="marmoset"
-__version__="1.0.0"
-__copyright__="(C) Ford Peprah, 2012-2014"
+__prog__=PROG
+__version__=VERSION
+__copyright__="(C) Ford Peprah, 2012-2015"
 __description__=""
