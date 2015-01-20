@@ -50,7 +50,7 @@ class Marmoset():
     @ivar base_url: The base url for the marmoset submission server.
     """
     base_url = "http://marmoset.student.cs.uwaterloo.ca"
-    cookiefile = tempfile.gettempdir() + '/marmoset.session.cookies'
+    cookiefile = os.path.join(tempfile.gettempdir(), 'marmoset.session.cookies')
 
     def __init__(self, username=None, password=None, **kwargs):
         """
