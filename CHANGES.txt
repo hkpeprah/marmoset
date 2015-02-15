@@ -1,3 +1,4 @@
+v1.1.3, February 15th, 2015 -- Regression and zipfile fix.
 v1.1.3, January 20th, 2015 -- Merge PR from Gibstick to fix temp, fix account select on Marmoset
 v1.1.2, October 14th, 2014 -- Fix behaviour of zip with one file
 v0.1.3, Saturday, October 11th, 2014 -- Fix relative path.  Expected behaviour when submitting one file.

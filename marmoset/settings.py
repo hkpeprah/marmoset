@@ -2,7 +2,7 @@ import textwrap
 
 
 PROG = "marmoset"
-VERSION = "1.1.3"
+VERSION = "1.1.4"
 DESCRIPTION = textwrap.dedent("""\
    A command line tool for interacting with the Marmoset Submission Server.
    -------------------------------------------------------------------------

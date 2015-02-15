@@ -3,7 +3,7 @@
 @authors: Ford Peprah
 @copyright: Ford Peprah, 2012, 2013
 @license: GNU General Public License
-@version: 1.1.3
+@version: 1.1.4
 """
 from core.marmosetbrowser import Marmoset, NotTestedYet, BrowserException, NoMatchingQueryException
 from core.marmosetsession import MarmosetSession

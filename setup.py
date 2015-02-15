@@ -9,7 +9,7 @@ except ImportError:
 
 setup(
     name="Marmoset",
-    version="1.1.3",
+    version="1.1.4",
     author="Ford Peprah",
     author_email="user@example.com",
     packages=['marmoset', 'marmoset.core', 'marmoset.utils'],
