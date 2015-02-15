@@ -463,5 +463,5 @@ def write_zip(name, files):
         for f in files:
             if f == name:
                 continue
-            myzip.write(f)
+            myzip.write(f, arcname=os.path.basename(f))
     return name
