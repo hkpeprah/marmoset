@@ -13,7 +13,6 @@ setup(
     author="Ford Peprah",
     author_email="user@example.com",
     packages=['marmoset', 'marmoset.core', 'marmoset.utils'],
-    scripts=['bin/marmoset'],
     url="http://example.com",
     license='LICENSE.txt',
     description="Command-line interface for the UofW Marmoset Submission Server",
@@ -23,6 +22,9 @@ setup(
         "mechanize == 0.2.5",
         "keyring == 3.3"
     ],
+    entry_points={
+        'console_scripts': ['marmoset = marmoset.admin:main']
+    },
 )
 
     
