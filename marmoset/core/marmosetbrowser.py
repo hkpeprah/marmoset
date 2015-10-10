@@ -194,7 +194,7 @@ class Marmoset():
         else:
             filename = files
 
-        self.browser.form.add_file(open(filename), 'text/plain', filename)
+        self.browser.form.add_file(open(filename, 'rb'), 'application/octet-stream', filename)
         self.browser.submit()
 
         if self.browser.geturl().find("/view/project.jsp?projectPK=") > -1:
